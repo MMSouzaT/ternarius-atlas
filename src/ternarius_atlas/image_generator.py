@@ -16,8 +16,9 @@ class ImageGenerator:
     def __init__(self):
         """Initialize the image generator with Gemini API"""
         genai.configure(api_key=config.gemini_api_key)
-        # Note: As of now, Gemini's image generation might be limited
-        # We'll use the Imagen model if available, otherwise create placeholder images
+        # Note: Google Gemini Pro Vision is for image analysis, not generation
+        # Image generation functionality uses placeholder images
+        # In production, integrate with Imagen API or other image generation service
         try:
             self.model = genai.GenerativeModel('gemini-pro-vision')
         except (AttributeError, ValueError) as e:

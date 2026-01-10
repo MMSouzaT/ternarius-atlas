@@ -44,8 +44,16 @@ class TextGenerator:
         ...
         """
         
-        response = self.model.generate_content(prompt)
-        text = response.text
+        try:
+            response = self.model.generate_content(prompt)
+            text = response.text
+        except Exception as e:
+            print(f"Erro ao gerar estrutura do e-book: {e}")
+            # Return default structure on error
+            return {
+                "title": f"E-book sobre {theme}",
+                "chapters": [f"Capítulo {i+1}: Introdução ao tema" for i in range(num_chapters)]
+            }
         
         # Parse the response
         lines = [line.strip() for line in text.split('\n') if line.strip()]
@@ -98,8 +106,18 @@ class TextGenerator:
         ...
         """
         
-        response = self.model.generate_content(prompt)
-        text = response.text
+        try:
+            response = self.model.generate_content(prompt)
+            text = response.text
+        except Exception as e:
+            print(f"Erro ao gerar conteúdo do capítulo: {e}")
+            # Return default content on error
+            text = f"""Este é o capítulo sobre {chapter_title}.
+            
+            O conteúdo está relacionado ao tema {theme} e fornece 
+            informações importantes sobre este tópico.
+            
+            [Conteúdo gerado com erro - verifique sua conexão e API key]"""
         
         # Parse pages
         pages = []
@@ -166,5 +184,10 @@ class TextGenerator:
         Não use formatação, apenas texto simples.
         """
         
-        response = self.model.generate_content(prompt)
-        return response.text.strip()
+        try:
+            response = self.model.generate_content(prompt)
+            return response.text.strip()
+        except Exception as e:
+            print(f"Erro ao gerar prompt de imagem: {e}")
+            # Return a simple default prompt
+            return f"Ilustração sobre {chapter_title} relacionada ao tema {theme}"

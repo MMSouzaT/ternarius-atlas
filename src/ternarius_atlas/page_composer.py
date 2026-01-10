@@ -237,4 +237,11 @@ class PageComposer:
         ratio = min(max_width / image.width, max_height / image.height)
         new_width = int(image.width * ratio)
         new_height = int(image.height * ratio)
-        return image.resize((new_width, new_height), Image.Resampling.LANCZOS)
+        
+        # Use LANCZOS resampling for best quality (compatible with older Pillow versions)
+        try:
+            resample = Image.Resampling.LANCZOS
+        except AttributeError:
+            resample = Image.LANCZOS
+        
+        return image.resize((new_width, new_height), resample)
