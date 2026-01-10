@@ -53,7 +53,7 @@ class PageComposer:
         try:
             font = ImageFont.load_default()
             title_font = ImageFont.load_default()
-        except:
+        except (OSError, IOError, ImportError):
             font = None
             title_font = None
         
@@ -139,7 +139,7 @@ class PageComposer:
         try:
             title_font = ImageFont.load_default()
             author_font = ImageFont.load_default()
-        except:
+        except (OSError, IOError, ImportError):
             title_font = None
             author_font = None
         

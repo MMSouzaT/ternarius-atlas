@@ -20,7 +20,7 @@ class ImageGenerator:
         # We'll use the Imagen model if available, otherwise create placeholder images
         try:
             self.model = genai.GenerativeModel('gemini-pro-vision')
-        except:
+        except (AttributeError, ValueError) as e:
             self.model = None
     
     def generate_image(self, prompt: str, width: int = 512, height: int = 512) -> Optional[Image.Image]:
@@ -56,7 +56,7 @@ class ImageGenerator:
             try:
                 # Try to use a basic font
                 font = ImageFont.load_default()
-            except:
+            except (OSError, IOError, ImportError):
                 font = None
             
             # Draw prompt text (truncated if too long)
@@ -118,7 +118,7 @@ class ImageGenerator:
             # Use default font
             title_font = ImageFont.load_default()
             theme_font = ImageFont.load_default()
-        except:
+        except (OSError, IOError, ImportError):
             title_font = None
             theme_font = None
         
