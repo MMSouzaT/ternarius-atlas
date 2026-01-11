@@ -20,7 +20,7 @@ class ImageGenerator:
         # Image generation functionality uses placeholder images
         # In production, integrate with Imagen API or other image generation service
         try:
-            self.model = genai.GenerativeModel('gemini-pro-vision')
+            self.model = genai.GenerativeModel('gemini-2.5-flash')
         except (AttributeError, ValueError) as e:
             self.model = None
     

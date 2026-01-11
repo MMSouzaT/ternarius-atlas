@@ -1,174 +1,179 @@
-# 🌟 Ternarius Atlas - Gerador de E-books com IA
+# 🎨 Ternarius Atlas - Gerador de E-books com IA
 
-Um projeto Python que gera E-books completos a partir de um tema fornecido pelo usuário, utilizando IA (Google Gemini) para gerar textos e imagens, mesclando-os em páginas individuais.
+Gerador de e-books ilustrados usando Inteligência Artificial com suporte a **Stable Diffusion local** para imagens de alta qualidade.
 
-## 📋 Funcionalidades
+## 🚀 Recursos
 
-- ✨ **Geração Automática de Conteúdo**: Cria títulos, capítulos e textos usando Google Gemini
-- 🎨 **Ilustrações por IA**: Gera imagens ilustrativas para cada capítulo (placeholders visuais)
-- 📄 **Páginas Completas**: Combina texto e imagens em páginas prontas para visualização
-- 🎯 **Customizável**: Configure número de capítulos, páginas e inclusão de imagens
-- 💾 **Saída em Imagens**: Cada página é salva como uma imagem PNG individual
+- ✅ Geração de texto com Google Gemini
+- ✅ Geração de imagens com **Stable Diffusion** (local, GPU-accelerated)
+- ✅ Sistema interativo em 3 etapas
+- ✅ Criação de e-books para crianças
+- ✅ Tons pastéis e personagens consistentes
+- ✅ Organização automática em pastas
 
-## 🚀 Instalação
+## 💻 Requisitos
 
-### 1. Clone o repositório
+### Para Usar Localmente (Recomendado - Rápido com GPU)
+
+**Windows com RTX 3050:**
+- Python 3.10 ou 3.11
+- GPU NVIDIA RTX 3050 (8GB VRAM)
+- 10-20 GB de espaço em disco
+- Drivers NVIDIA atualizados
+
+**Benchmark com RTX 3050:**
+- Geração de imagem: 5-15 segundos ⚡
+- E-book completo (8 páginas): ~2-3 minutos
+
+## 🔧 Instalação Rápida (Windows)
 
 ```bash
+# 1. Clone o repositório
 git clone https://github.com/MMSouzaT/ternarius-atlas.git
 cd ternarius-atlas
+
+# 2. Execute o instalador automático
+setup_windows.bat
+
+# 3. Ative o ambiente (sempre que abrir novo terminal)
+venv\Scripts\activate
+
+# 4. Configure sua API key do Gemini
+# Copie o arquivo .env.example para .env e adicione sua chave:
+# GEMINI_API_KEY=sua_chave_aqui
 ```
 
-### 2. Instale as dependências
+**📖 Guia completo:** [SETUP_LOCAL_WINDOWS.md](SETUP_LOCAL_WINDOWS.md)
 
-```bash
-pip install -r requirements.txt
-```
+## 📚 Como Usar
 
-### 3. Configure a API do Google Gemini
-
-1. Obtenha sua chave de API do Google Gemini em: https://makersuite.google.com/app/apikey
-2. Copie o arquivo de exemplo:
-   ```bash
-   cp .env.example .env
-   ```
-3. Edite o arquivo `.env` e adicione sua chave:
-   ```
-   GEMINI_API_KEY=sua_chave_aqui
-   ```
-
-## 📖 Uso
-
-### Modo Interativo
-
-Execute o script principal e siga as instruções:
+### Modo 1: Sistema Interativo (3 Etapas)
 
 ```bash
 python main.py
 ```
 
-O programa irá perguntar:
-- Tema do e-book
-- Número de capítulos (padrão: 3)
-- Páginas por capítulo (padrão: 2)
-- Se deseja incluir imagens ilustrativas
+1. **Etapa 1:** Gerar estrutura do livro (você revisa e aprova)
+2. **Etapa 2:** Gerar imagens com Stable Diffusion (você pode alterar)
+3. **Etapa 3:** Adicionar textos às imagens (resultado final)
 
-### Modo Linha de Comando
-
-Você também pode passar o tema diretamente:
+### Modo 2: Apenas Gerar Imagens com Stable Diffusion
 
 ```bash
-python main.py "Inteligência Artificial"
+python generate_images_sd.py
 ```
 
-### Uso Programático
+Gera imagens de alta qualidade usando sua GPU local.
+
+## 🎯 Exemplo de E-book Criado
+
+**"As Maravilhosas Histórias de Gênesis"**
+- 8 páginas ilustradas
+- Tons pastéis suaves
+- Personagens consistentes (Adão, Eva, Noé)
+- Textos para crianças até 10 anos
+- [Ver estrutura](output/as_maravilhosas_historias_de_genesis/structure.json)
+
+## ⚙️ Configurações
+
+### Otimizado para RTX 3050 (8GB VRAM)
+
+O sistema já vem configurado, mas você pode ajustar em `generate_images_sd.py`:
 
 ```python
-from ternarius_atlas import EbookGenerator
-
-# Criar o gerador
-generator = EbookGenerator(output_dir="output")
-
-# Gerar e-book rápido (demo)
-pages = generator.generate_quick_ebook(theme="Python para Iniciantes")
-
-# Ou com configuração personalizada
-pages = generator.generate_ebook(
-    theme="História da Computação",
-    num_chapters=5,
-    pages_per_chapter=3,
-    include_images=True,
-    author="Seu Nome"
-)
+CONFIG = {
+    "model": "runwayml/stable-diffusion-v1-5",  # Rápido e eficiente
+    "num_inference_steps": 30,  # 30=rápido, 50=mais qualidade
+    "width": 800,
+    "height": 1200,
+}
 ```
 
-## 📁 Estrutura do Projeto
+### Modelos Disponíveis
+
+| Modelo | VRAM | Velocidade RTX 3050 | Qualidade |
+|--------|------|---------------------|-----------|
+| SD 1.5 | ~4GB | 5-10 seg/img | Boa |
+| SDXL | ~6-8GB | 15-25 seg/img | Excelente |
+
+## 📂 Estrutura do Projeto
 
 ```
 ternarius-atlas/
+├── main.py                      # Sistema interativo
+├── generate_images_sd.py        # Gerador com Stable Diffusion
+├── setup_windows.bat            # Instalador automático
+├── SETUP_LOCAL_WINDOWS.md       # Guia de instalação
+├── requirements.txt             # Dependências
+├── .env                         # API keys (criar)
 ├── src/
 │   └── ternarius_atlas/
-│       ├── __init__.py           # Módulo principal
-│       ├── config.py              # Configurações
-│       ├── text_generator.py     # Geração de texto com Gemini
-│       ├── image_generator.py    # Geração de imagens
-│       ├── page_composer.py      # Composição de páginas
-│       └── ebook_generator.py    # Orquestrador principal
-├── examples/
-│   └── example_usage.py          # Exemplos de uso
-├── output/                        # Diretório de saída (gerado automaticamente)
-├── main.py                        # Script principal
-├── requirements.txt               # Dependências
-├── .env.example                   # Exemplo de configuração
-└── README.md                      # Este arquivo
+│       ├── text_generator.py    # Geração de texto
+│       ├── image_generator.py   # Geração de imagens
+│       ├── page_composer.py     # Composição de páginas
+│       └── config.py            # Configurações
+└── output/                      # E-books gerados
+    └── [nome-do-livro]/
+        ├── structure.json       # Estrutura
+        ├── page_*_sd.png        # Imagens SD
+        └── page_*_final.png     # Páginas finais
 ```
 
-## 🔧 Dependências
+## 🐛 Solução de Problemas
 
-- **google-generativeai**: API do Google Gemini para geração de texto
-- **Pillow**: Processamento de imagens
-- **python-dotenv**: Gerenciamento de variáveis de ambiente
-- **requests**: Requisições HTTP (futuras expansões)
-
-## 📝 Exemplos
-
-Veja exemplos completos de uso em `examples/example_usage.py`:
-
+### Verificar se GPU está funcionando
 ```bash
-python examples/example_usage.py
+python test_gpu.py
 ```
 
-## 🎨 Formato de Saída
+### Erro: "CUDA out of memory"
+- Feche outros programas que usam GPU
+- Reduza `num_inference_steps` para 20
+- Use modelo SD 1.5 (mais leve)
 
-O e-book gerado consiste em múltiplas imagens PNG:
-- `page_000_cover.png` - Capa do e-book
-- `page_001_title.png` - Página de título
-- `page_002_ch1_p1.png` - Capítulo 1, Página 1
-- `page_003_ch1_p2.png` - Capítulo 1, Página 2
-- ... e assim por diante
-
-Cada página tem:
-- 800x1200 pixels (padrão, configurável)
-- Texto formatado e ajustado automaticamente
-- Imagens ilustrativas (opcional)
-- Número de página
-- Borda decorativa
-
-## ⚙️ Configuração Avançada
-
-Você pode personalizar as configurações editando `src/ternarius_atlas/config.py`:
-
-```python
-DEFAULT_PAGE_WIDTH = 800
-DEFAULT_PAGE_HEIGHT = 1200
-DEFAULT_FONT_SIZE = 24
-DEFAULT_PADDING = 50
-# ... e muito mais
+### Reinstalar PyTorch com CUDA
+```bash
+pip uninstall torch torchvision torchaudio
+pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu121
 ```
 
-## 🤝 Contribuindo
+## 📊 Performance Esperada
 
-Contribuições são bem-vindas! Sinta-se à vontade para:
-- Reportar bugs
-- Sugerir novas funcionalidades
-- Enviar pull requests
+### RTX 3050 (8GB VRAM)
+- **Imagem 800x1200:** 8-12 segundos
+- **E-book 8 páginas:** ~2-3 minutos
+- **Primeira execução:** +3-5 min (download do modelo 4GB)
 
-## 📄 Licença
+### CPU (sem GPU)
+- ⚠️ **Não recomendado:** 2-5 minutos por imagem
 
-Este projeto está sob desenvolvimento. Consulte o arquivo LICENSE para mais detalhes.
+## 💡 Dicas
 
-## 🙏 Agradecimentos
+- **Primeira vez:** Aguarde o download do modelo (~4GB)
+- **Modelos salvos em:** `C:\Users\VOCÊ\.cache\huggingface\`
+- **Quer mais qualidade?** Aumente `num_inference_steps` para 50
+- **Quer mais velocidade?** Use `num_inference_steps: 20`
 
-- Google Gemini pela API de IA
-- Comunidade Python pelos pacotes incríveis
+## 🎓 Recursos
 
-## 📞 Suporte
+- [Documentação Stable Diffusion](https://stable-diffusion-art.com/)
+- [Hugging Face Diffusers](https://huggingface.co/docs/diffusers)
+- [Modelos Text-to-Image](https://huggingface.co/models?pipeline_tag=text-to-image)
 
-Se encontrar problemas:
-1. Verifique se a chave da API está configurada corretamente
-2. Certifique-se de que todas as dependências estão instaladas
-3. Abra uma issue no GitHub com detalhes do erro
+## 📝 Licença
+
+MIT License
+
+## ✨ Próximas Features
+
+- [ ] Interface web com Gradio
+- [ ] Exportação para PDF/EPUB
+- [ ] LoRAs customizados
+- [ ] Mais modelos especializados
+- [ ] Editor visual de páginas
 
 ---
 
-**Desenvolvido com ❤️ usando Python e Google Gemini**
+**Feito com ❤️ e IA**
+
+**Sua RTX 3050 está pronta para criar livros incríveis! 🚀📚**

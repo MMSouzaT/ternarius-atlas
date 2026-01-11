@@ -245,3 +245,135 @@ class PageComposer:
             resample = Image.LANCZOS
         
         return image.resize((new_width, new_height), resample)
+    
+    def add_text_to_cover(self, background_image: Image.Image, title: str) -> Image.Image:
+        """
+        Add title text to a cover image
+        
+        Args:
+            background_image: Base image for the cover
+            title: Book title to add
+            
+        Returns:
+            Image with text overlay
+        """
+        # Create a copy to avoid modifying original
+        result = background_image.copy()
+        draw = ImageDraw.Draw(result)
+        
+        width, height = result.size
+        
+        try:
+            # Try to use a larger font for title
+            title_font = ImageFont.load_default()
+        except:
+            title_font = None
+        
+        # Add semi-transparent overlay for text readability
+        overlay = Image.new('RGBA', result.size, (0, 0, 0, 0))
+        overlay_draw = ImageDraw.Draw(overlay)
+        
+        # Draw semi-transparent rectangle
+        padding = 50
+        rect_y = int(height * 0.3)
+        rect_height = int(height * 0.4)
+        overlay_draw.rectangle(
+            [(padding, rect_y), (width - padding, rect_y + rect_height)],
+            fill=(255, 255, 255, 200)
+        )
+        
+        # Composite overlay
+        result = Image.alpha_composite(result.convert('RGBA'), overlay).convert('RGB')
+        draw = ImageDraw.Draw(result)
+        
+        # Draw title text
+        title_lines = self._wrap_text(title, width - 2 * padding - 20, draw, title_font)
+        
+        # Calculate total text height
+        line_height = self._get_line_height(draw, title_font)
+        total_text_height = len(title_lines) * line_height
+        
+        # Center text vertically in the overlay
+        start_y = rect_y + (rect_height - total_text_height) // 2
+        
+        for i, line in enumerate(title_lines):
+            bbox = draw.textbbox((0, 0), line, font=title_font)
+            text_width = bbox[2] - bbox[0]
+            text_x = (width - text_width) // 2
+            text_y = start_y + i * line_height
+            
+            # Draw text with shadow for better readability
+            shadow_offset = 2
+            draw.text((text_x + shadow_offset, text_y + shadow_offset), line, fill=(100, 100, 100), font=title_font)
+            draw.text((text_x, text_y), line, fill=(20, 20, 20), font=title_font)
+        
+        return result
+    
+    def add_text_to_page(self, background_image: Image.Image, text: str, page_number: int = 1) -> Image.Image:
+        """
+        Add text content to a page image with good readability
+        
+        Args:
+            background_image: Base image
+            text: Text content to add
+            page_number: Page number
+            
+        Returns:
+            Image with text overlay
+        """
+        # Create a copy
+        result = background_image.copy()
+        width, height = result.size
+        
+        try:
+            font = ImageFont.load_default()
+        except:
+            font = None
+        
+        # Create semi-transparent text area at bottom
+        overlay = Image.new('RGBA', result.size, (0, 0, 0, 0))
+        overlay_draw = ImageDraw.Draw(overlay)
+        
+        # Calculate text area size
+        padding = 30
+        text_area_height = int(height * 0.35)  # Use bottom 35% for text
+        text_area_y = height - text_area_height
+        
+        # Draw semi-transparent background for text
+        overlay_draw.rectangle(
+            [(0, text_area_y), (width, height)],
+            fill=(255, 255, 255, 220)
+        )
+        
+        # Composite overlay
+        result = Image.alpha_composite(result.convert('RGBA'), overlay).convert('RGB')
+        draw = ImageDraw.Draw(result)
+        
+        # Wrap and draw text
+        text_lines = self._wrap_text(text, width - 2 * padding, draw, font)
+        line_height = self._get_line_height(draw, font)
+        
+        current_y = text_area_y + padding
+        
+        # Limit number of lines to fit in text area
+        max_lines = (text_area_height - 2 * padding - 30) // line_height  # Leave space for page number
+        
+        for i, line in enumerate(text_lines):
+            if i >= max_lines:
+                # Add ellipsis if text is too long
+                if i == max_lines:
+                    draw.text((padding, current_y), "...", fill=(50, 50, 50), font=font)
+                break
+            
+            draw.text((padding, current_y), line, fill=(30, 30, 30), font=font)
+            current_y += line_height
+        
+        # Add page number
+        page_num_text = f"— {page_number} —"
+        bbox = draw.textbbox((0, 0), page_num_text, font=font)
+        text_width = bbox[2] - bbox[0]
+        page_num_x = (width - text_width) // 2
+        page_num_y = height - padding + 5
+        draw.text((page_num_x, page_num_y), page_num_text, fill=(100, 100, 100), font=font)
+        
+        return result

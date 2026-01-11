@@ -13,7 +13,7 @@ class TextGenerator:
     def __init__(self):
         """Initialize the text generator with Gemini API"""
         genai.configure(api_key=config.gemini_api_key)
-        self.model = genai.GenerativeModel('gemini-pro')
+        self.model = genai.GenerativeModel('gemini-2.5-flash')
     
     def generate_ebook_structure(self, theme: str, num_chapters: int = 5) -> Dict[str, List[str]]:
         """
@@ -191,3 +191,173 @@ class TextGenerator:
             print(f"Erro ao gerar prompt de imagem: {e}")
             # Return a simple default prompt
             return f"Ilustração sobre {chapter_title} relacionada ao tema {theme}"
+    
+    def generate_detailed_ebook_structure(self, theme: str) -> dict:
+        """
+        Generate a detailed e-book structure with all pages, texts and illustration descriptions
+        
+        Args:
+            theme: The main theme/topic for the e-book with optional instructions
+            
+        Returns:
+            Dictionary with complete book structure including all pages
+        """
+        prompt = f"""
+        Você é um especialista em criar e-books educativos e envolventes.
+        
+        Tema/Instruções: {theme}
+        
+        Crie uma estrutura COMPLETA para um e-book com as seguintes informações:
+        
+        1. Título atraente do e-book (máximo 8 palavras)
+        2. Breve descrição do livro (1-2 frases)
+        3. Número total de páginas (recomendado: 6-10 páginas)
+        4. Para CADA página do livro, forneça:
+           - Tipo da página (cover/chapter/content)
+           - Título (se aplicável)
+           - Texto completo da página (2-4 parágrafos curtos, linguagem simples e clara)
+           - Descrição detalhada da ilustração (50-80 palavras, específica para geração de imagem por IA)
+        
+        FORMATO DE RESPOSTA (siga EXATAMENTE este formato):
+        
+        TÍTULO: [título do e-book]
+        DESCRIÇÃO: [descrição breve]
+        TOTAL_PÁGINAS: [número]
+        
+        ---PÁGINA 1---
+        TIPO: cover
+        TÍTULO: [título para a capa]
+        TEXTO: [deixar vazio para capa]
+        ILUSTRAÇÃO: [descrição detalhada da imagem de capa, incluindo estilo artístico, cores, elementos visuais]
+        
+        ---PÁGINA 2---
+        TIPO: chapter
+        TÍTULO: [título do capítulo]
+        TEXTO: [texto completo desta página, 2-4 parágrafos]
+        ILUSTRAÇÃO: [descrição detalhada da imagem]
+        
+        ---PÁGINA 3---
+        TIPO: content
+        TÍTULO: [subtítulo ou deixar vazio]
+        TEXTO: [texto completo desta página]
+        ILUSTRAÇÃO: [descrição detalhada da imagem]
+        
+        [Continue para todas as páginas...]
+        
+        IMPORTANTE:
+        - Use linguagem adequada para o público-alvo
+        - Textos devem ser concisos e claros
+        - Descrições de ilustrações devem ser específicas e visuais
+        - Inclua variedade visual nas ilustrações
+        """
+        
+        try:
+            response = self.model.generate_content(prompt)
+            text = response.text
+        except Exception as e:
+            print(f"Erro ao gerar estrutura do e-book: {e}")
+            # Return a default structure
+            return {
+                'title': 'Livro sobre ' + theme[:30],
+                'description': 'Um livro gerado automaticamente',
+                'total_pages': 5,
+                'pages': [
+                    {
+                        'type': 'cover',
+                        'title': 'Livro sobre ' + theme[:30],
+                        'text': '',
+                        'illustration_description': 'Capa colorida e atraente sobre ' + theme[:50]
+                    },
+                    {
+                        'type': 'content',
+                        'title': 'Capítulo 1',
+                        'text': 'Conteúdo sobre o tema.',
+                        'illustration_description': 'Ilustração relacionada ao tema'
+                    }
+                ]
+            }
+        
+        # Parse the structured response
+        return self._parse_ebook_structure(text)
+    
+    def _parse_ebook_structure(self, text: str) -> dict:
+        """Parse the AI-generated structure into a dictionary"""
+        structure = {
+            'title': '',
+            'description': '',
+            'total_pages': 0,
+            'pages': []
+        }
+        
+        lines = text.split('\n')
+        current_page = None
+        current_field = None
+        
+        for line in lines:
+            line = line.strip()
+            
+            # Parse header info
+            if line.startswith('TÍTULO:'):
+                structure['title'] = line.replace('TÍTULO:', '').strip()
+            elif line.startswith('DESCRIÇÃO:'):
+                structure['description'] = line.replace('DESCRIÇÃO:', '').strip()
+            elif line.startswith('TOTAL_PÁGINAS:'):
+                try:
+                    structure['total_pages'] = int(line.replace('TOTAL_PÁGINAS:', '').strip())
+                except:
+                    pass
+            
+            # Parse page sections
+            elif line.startswith('---PÁGINA'):
+                if current_page:
+                    structure['pages'].append(current_page)
+                current_page = {
+                    'type': 'content',
+                    'title': '',
+                    'text': '',
+                    'illustration_description': ''
+                }
+                current_field = None
+            
+            elif current_page is not None:
+                if line.startswith('TIPO:'):
+                    current_page['type'] = line.replace('TIPO:', '').strip().lower()
+                    current_field = None
+                elif line.startswith('TÍTULO:'):
+                    current_page['title'] = line.replace('TÍTULO:', '').strip()
+                    current_field = None
+                elif line.startswith('TEXTO:'):
+                    text_content = line.replace('TEXTO:', '').strip()
+                    if text_content:
+                        current_page['text'] = text_content
+                    current_field = 'text'
+                elif line.startswith('ILUSTRAÇÃO:'):
+                    illust_content = line.replace('ILUSTRAÇÃO:', '').strip()
+                    if illust_content:
+                        current_page['illustration_description'] = illust_content
+                    current_field = 'illustration'
+                elif line and current_field:
+                    # Continue multiline content
+                    if current_field == 'text':
+                        current_page['text'] += ' ' + line
+                    elif current_field == 'illustration':
+                        current_page['illustration_description'] += ' ' + line
+        
+        # Add last page
+        if current_page:
+            structure['pages'].append(current_page)
+        
+        # Set total pages if not provided
+        if structure['total_pages'] == 0:
+            structure['total_pages'] = len(structure['pages'])
+        
+        # Ensure we have at least a basic structure
+        if not structure['pages']:
+            structure['pages'] = [{
+                'type': 'cover',
+                'title': structure['title'] or 'Meu Livro',
+                'text': '',
+                'illustration_description': 'Uma capa bonita e colorida'
+            }]
+        
+        return structure
